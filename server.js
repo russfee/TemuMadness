@@ -22,6 +22,20 @@ app.get('/config', (req, res) => {
     }
 });
 
+// Preview generated Karabiner rules without writing
+app.get('/config/preview', (req, res) => {
+    try {
+        const current = fs.existsSync(CONFIG_FILE)
+            ? JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'))
+            : { mappings: [] };
+        const mappings = current.mappings || [];
+        const karabinerRules = buildKarabinerRules(mappings);
+        res.json({ success: true, rules: karabinerRules });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Save config AND apply to Karabiner immediately
 app.post('/config', (req, res) => {
     try {
@@ -35,23 +49,7 @@ app.post('/config', (req, res) => {
         }
 
         // Generate and apply Karabiner rules
-        const karabinerRules = mappings
-            .filter(m => m.fromKey && m.toShortcut)
-            .map(m => ({
-                description: m.name || 'Temu Button',
-                manipulators: [{
-                    type: 'basic',
-                    from: parseFromKey(m.fromKey),
-                    to: [parseToKey(m.toShortcut)],
-                    conditions: [{
-                        type: 'device_if',
-                        identifiers: [{
-                            vendor_id: 2070,
-                            product_id: 9332
-                        }]
-                    }]
-                }]
-            }));
+        const karabinerRules = buildKarabinerRules(mappings);
 
         // Read existing Karabiner config
         let karabinerConfig = { profiles: [{ name: 'Default profile', selected: true, complex_modifications: { rules: [] } }] };
@@ -143,6 +141,75 @@ function parseToKey(combo) {
     return result;
 }
 
+function parseBundleIdentifiers(value) {
+    if (!value || typeof value !== 'string') return [];
+    return value
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(id => `^${escapeRegex(id)}$`);
+}
+
+function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildAppSpecificByFromKey(mappings) {
+    const byFromKey = {};
+    mappings.forEach(m => {
+        const bundleIdentifiers = parseBundleIdentifiers(m.appBundle);
+        if (bundleIdentifiers.length === 0) return;
+        if (!byFromKey[m.fromKey]) {
+            byFromKey[m.fromKey] = [];
+        }
+        const current = new Set(byFromKey[m.fromKey]);
+        bundleIdentifiers.forEach(id => current.add(id));
+        byFromKey[m.fromKey] = Array.from(current);
+    });
+    return byFromKey;
+}
+
+function buildKarabinerRules(mappings) {
+    const validMappings = mappings.filter(m => m.fromKey && m.toShortcut);
+    const appSpecificByFromKey = buildAppSpecificByFromKey(validMappings);
+
+    return validMappings.map(m => {
+        const conditions = [{
+            type: 'device_if',
+            identifiers: [{
+                vendor_id: 2070,
+                product_id: 9332
+            }]
+        }];
+
+        const bundleIdentifiers = parseBundleIdentifiers(m.appBundle);
+        if (bundleIdentifiers.length > 0) {
+            conditions.push({
+                type: 'frontmost_application_if',
+                bundle_identifiers: bundleIdentifiers
+            });
+        } else {
+            const excludedBundles = appSpecificByFromKey[m.fromKey] || [];
+            if (excludedBundles.length > 0) {
+                conditions.push({
+                    type: 'frontmost_application_unless',
+                    bundle_identifiers: excludedBundles
+                });
+            }
+        }
+
+        return {
+            description: m.name || 'Temu Button',
+            manipulators: [{
+                type: 'basic',
+                from: parseFromKey(m.fromKey),
+                to: [parseToKey(m.toShortcut)],
+                conditions
+            }]
+        };
+    });
+}
+
 // SSE endpoint for key detection using ioreg
 let detectProcess = null;
 
@@ -212,7 +279,11 @@ app.post('/detection-mode', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`\n🎹 Temu Keyboard Mapper`);
     console.log(`   http://localhost:${PORT}\n`);
+});
+
+server.on('error', (err) => {
+    console.error('Server failed to start:', err);
 });

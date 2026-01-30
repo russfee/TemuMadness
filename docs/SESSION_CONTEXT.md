@@ -2,38 +2,22 @@
 
 ## Session updates
 - 2026-01-22: Updated AGENTS.md paths to use docs/* and remove ProjectTemplate references. Current status: paths cleaned. Next steps: none.
+- 2026-01-30: Added app-specific mappings via bundle ID in UI + Karabiner conditions. Current status: supports multiple app-specific mappings for the same button without double-firing. Next steps: confirm mappings work per app.
+- 2026-01-30: Added bundle ID helper chips for common apps in the UI. Current status: quick-fill bundle IDs available. Next steps: confirm helper list is adequate.
+- 2026-01-30: Temporarily disable Temu rules during detection to avoid remapped shortcuts. Current status: detect should capture original button again. Next steps: verify detection flow after mapping.
+- 2026-01-30: Added debug panel to preview generated Karabiner rules from saved config. Current status: can inspect app conditions. Next steps: verify preview matches applied rules.
 
 ## What this repo is
-- One sentence: what this project does.
-
-Example Q/A:
-Q: What is this repo?
-A: A Chrome extension that batch-fills Drupal edit forms from a CSV.
+- One sentence: Helps custom map buttons on a Temu side keyboard.
 
 ## Current goal
-- The most important thing to do next.
-
-Example Q/A:
-Q: What’s the goal for this session?
-A: Add support for XLSX import and fix notification styling.
+- Design tweaks and functionality upgrades.
 
 ## Where to look first
-- 3–5 files/folders that matter most.
-
-Example Q/A:
-Q: What files should I check first?
-A: manifest.json, lib/data-manager.js, lib/form-filler.js, content/content.js, config/form-templates.json.
+- docs/
 
 ## Known issues / risks
-- Bullet list of sharp edges or unresolved problems.
-
-Example Q/A:
-Q: Any known issues?
-A: XLSX import doesn’t work; CSV parsing fails on embedded newlines.
+- Don't accidentally take over the main keyboard.
 
 ## How to validate
-- Minimal steps to verify changes.
-
-Example Q/A:
-Q: How do we validate?
-A: Reload the extension, import a sample CSV, open a /node/*/edit page, click “Fill Form,” confirm fields update.
+- Refresh the webpage running local.
