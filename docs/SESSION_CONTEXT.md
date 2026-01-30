@@ -6,6 +6,7 @@
 - 2026-01-30: Added bundle ID helper chips for common apps in the UI. Current status: quick-fill bundle IDs available. Next steps: confirm helper list is adequate.
 - 2026-01-30: Temporarily disable Temu rules during detection to avoid remapped shortcuts. Current status: detect should capture original button again. Next steps: verify detection flow after mapping.
 - 2026-01-30: Added debug panel to preview generated Karabiner rules from saved config. Current status: can inspect app conditions. Next steps: verify preview matches applied rules.
+- 2026-01-30: Normalize shortcut capture using e.code for letter/number keys to avoid Option-modified glyphs. Current status: alt/option combos should no longer capture symbols. Next steps: verify option+cmd combos capture expected letter.
 
 ## What this repo is
 - One sentence: Helps custom map buttons on a Temu side keyboard.

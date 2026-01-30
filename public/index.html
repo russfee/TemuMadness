@@ -224,15 +224,46 @@
             if (e.shiftKey) parts.push('shift');
             if (e.metaKey) parts.push('cmd');
 
-            let key = e.key.toLowerCase();
+            let key = (e.key || '').toLowerCase();
+
+            if (e.code) {
+                if (e.code.startsWith('Key')) {
+                    key = e.code.substring(3).toLowerCase();
+                } else if (e.code.startsWith('Digit')) {
+                    key = e.code.substring(5).toLowerCase();
+                } else if (e.code === 'Space') {
+                    key = 'space';
+                } else if (e.code === 'Minus') {
+                    key = '-';
+                } else if (e.code === 'Equal') {
+                    key = '=';
+                } else if (e.code === 'BracketLeft') {
+                    key = '[';
+                } else if (e.code === 'BracketRight') {
+                    key = ']';
+                } else if (e.code === 'Backslash') {
+                    key = '\\';
+                } else if (e.code === 'Semicolon') {
+                    key = ';';
+                } else if (e.code === 'Quote') {
+                    key = '\'';
+                } else if (e.code === 'Comma') {
+                    key = ',';
+                } else if (e.code === 'Period') {
+                    key = '.';
+                } else if (e.code === 'Slash') {
+                    key = '/';
+                } else if (e.code === 'Backquote') {
+                    key = '`';
+                } else if (e.code.startsWith('Arrow')) {
+                    key = e.code.substring(5).toLowerCase();
+                }
+            }
 
             // Check if it's a numpad/keypad key using e.code
             if (e.code && e.code.startsWith('Numpad')) {
                 // Convert "Numpad5" to "keypad_5", "NumpadEnter" to "keypad_enter", etc.
                 key = 'keypad_' + e.code.substring(6).toLowerCase();
-            } else if (e.code && e.code.startsWith('Digit')) {
-                // Regular number keys - just use the number
-                key = e.code.substring(5).toLowerCase();
             }
 
             // Skip if it's just a modifier
